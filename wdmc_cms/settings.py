@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'xadmin',
     'import_export',
     'reversion',
-    'goods.apps.GoodsConfig',
     'orders.apps.OrdersConfig',
     'categorys.apps.CategorysConfig',
     'others.apps.OthersConfig',
@@ -83,30 +82,30 @@ WSGI_APPLICATION = 'wdmc_cms.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     # 本地开发本地数据库
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'my_cms_test',
-    #     'USER': 'root',
-    #     'PASSWORD': 'ghy090822',
-    #     'HOST': '127.0.0.1',
-    #     'PORT': 3306,
-    #     'OPTIONS': {
-    #         'charset': 'utf8mb4'
-    #     }
-    # },
     'default': {
         # 本地开发本地数据库
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wdmc',
+        'NAME': 'my_cms_test',
         'USER': 'root',
-        'PASSWORD': 'qh0429...',
-        'HOST': '129.28.197.23',
+        'PASSWORD': 'ghy090822',
+        'HOST': '127.0.0.1',
         'PORT': 3306,
         'OPTIONS': {
             'charset': 'utf8mb4'
         }
-    }
+    },
+    # 'default': {
+    #     # 本地开发本地数据库
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'wdmc',
+    #     'USER': 'root',
+    #     'PASSWORD': 'qh0429...',
+    #     'HOST': '129.28.197.23',
+    #     'PORT': 3306,
+    #     'OPTIONS': {
+    #         'charset': 'utf8mb4'
+    #     }
+    # }
 }
 
 
