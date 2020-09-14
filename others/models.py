@@ -6,7 +6,7 @@ class Customer(models.Model):
     """
     顾客管理表
     """
-    name = models.CharField(max_length=256, verbose_name='名称')
+    name = models.CharField(max_length=255, unique=True, verbose_name='名称')
     phone = models.CharField(max_length=40, verbose_name='电话号码')
     goods_address = models.CharField(max_length=256, verbose_name='送货地址')
     house_address = models.CharField(max_length=256, verbose_name='住宅地址', null=True, blank=True)

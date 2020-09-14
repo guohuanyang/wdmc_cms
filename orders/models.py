@@ -17,7 +17,18 @@ class BaseOrder(models.Model):
         ('客户已收货', '客户已收货'),
         ('订单已完成', '订单已完成'),
     )
-    tr_code = models.CharField(max_length=56, unique=True, verbose_name='百叶订单号(pc)', null=True, blank=True)
+    min_square_choices = (
+        (0.30, 0.30),
+        (0.35, 0.35),
+        (0.40, 0.40),
+        (0.50, 0.50),
+        (0.60, 0.60),
+        (0.70, 0.70),
+        (0.80, 0.80),
+        (0.90, 0.90),
+        (1.00, 1.00),
+    )
+    tr_code = models.CharField(max_length=56, unique=True, verbose_name='百叶订单号', null=True, blank=True)
     tax_float = models.FloatField(default=0.06, verbose_name='税点')
     total_money = models.FloatField(default=0.0, verbose_name='总金额')
     has_received = models.FloatField(default=0.0, verbose_name='已收款')
@@ -26,10 +37,11 @@ class BaseOrder(models.Model):
     width = models.FloatField(default=0.0, verbose_name='宽(W)mm')
     height = models.FloatField(default=0.0, verbose_name='高(H)mm')
     count = models.IntegerField(default=1, verbose_name='数量')
+    min_square = models.FloatField(default=0.30, choices=min_square_choices, verbose_name='起算平方(㎡)')
     single_square = models.FloatField(default=0.0, verbose_name='单件平方数(㎡)')
-    real_single_square = models.FloatField(default=0.0, verbose_name='实际单件平方数(㎡)(pc)')
-    total_square = models.FloatField(default=0.0, verbose_name='总平方数(㎡)(pc)')
-    real_total_square = models.FloatField(default=0.0, verbose_name='实际总平方数(㎡)(pc)')
+    real_single_square = models.FloatField(default=0.0, verbose_name='实际单件平方数(㎡)')
+    total_square = models.FloatField(default=0.0, verbose_name='总平方数(㎡)')
+    real_total_square = models.FloatField(default=0.0, verbose_name='实际总平方数(㎡)')
     single_price = models.FloatField(default=0.0, verbose_name='单价')
     detail_remark = models.CharField(max_length=256, default='', verbose_name='明细备注')
     color = models.ForeignKey(to=Color, on_delete=models.CASCADE, verbose_name='颜色')
@@ -57,13 +69,15 @@ class BaseOrder(models.Model):
             self.tr_code = self.create_at.strftime('%Y%m%d%H%M%S') + str(self.id)
         if self.auto_calculate:
             # 实际平方
-            self.real_single_square = self.single_square
-            # 自动计算总平方数
-            self.total_square = round(self.single_square * self.count, 2)
-            # 实际总平方数
-            self.real_total_square = self.total_square
-            # 自动计算价格
-            self.total_money = round(self.single_price * self.real_total_square, 2)
+            self.real_single_square = round(self.width * self.height/1000000 + 0.0000001, 2)
+            # 实际总平方
+            self.real_total_square = self.real_single_square * self.count
+            # 计价平方
+            self.single_square = max(self.real_single_square, self.min_square)
+            # 计价总平方数
+            self.total_square = self.single_square * self.count
+            # 计算价格
+            self.total_money = round(self.single_price * self.total_square, 2)
             self.last_update_time = datetime.now()
 
         super().save(*args, **kwargs)
@@ -142,6 +156,8 @@ class ProductOrder(models.Model):
             super().save(*args, **kwargs)
         if self.has_produced:
             self.base_order.status = '已生产'
+            # 完成生产 数量同步
+            self.produced_num = self.base_order.count
             self.base_order.save()
         self.last_update_time = datetime.now()
         super().save(*args, **kwargs)
@@ -172,6 +188,9 @@ class ShipOrder(models.Model):
             super().save(*args, **kwargs)
         if self.has_shipped and self.base_order.status == '已生产':
             self.base_order.status = '已发货'
+            # 完成发货,同步数量
+            self.ship_num = self.base_order.count
+            self.un_ship_num = 0
             self.base_order.save()
         self.last_update_time = datetime.now()
         super().save(*args, **kwargs)
